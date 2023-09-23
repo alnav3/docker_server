@@ -1,0 +1,26 @@
+version: '3.5'
+services:
+  headscale:
+    container_name: headscale
+    image: headscale/headscale:latest
+    volumes:
+      - ./config:/etc/headscale/
+      - ./data:/var/lib/headscale
+    networks:
+      - web_network
+    ports:
+      - 27896:8080
+    command: headscale serve
+    restart: always
+
+  headscale-ui:
+    image: ghcr.io/gurucomputing/headscale-ui:2022.12.23.2-beta
+    container_name: headscale-ui
+    restart: always
+    networks:
+      - web_network
+    ports:
+      - 9443:443
+networks:
+  web_network:
+    external: yes

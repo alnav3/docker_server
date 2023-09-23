@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  nextcloud:
+    image: nextcloud:25
+    container_name: new_nextcloud
+    volumes:
+      - ./data:/var/www/html/data
+      - ./config:/var/www/html/config
+      - ./custom_apps:/var/www/html/custom_apps
+    restart: always
+    environment:
+      - NEXTCLOUD_DB_TYPE=sqlite
+      - NEXTCLOUD_TRUSTED_DOMAINS=$DOMAIN $HOME_DOMAIN
+    networks:
+      - web_network
+
+networks:
+  web_network:
+    external: true

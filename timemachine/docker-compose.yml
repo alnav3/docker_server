@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  timemachine:
+    image: awlnx/samba-timemachine
+    container_name: timemachine
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "10445:445"
+    environment:
+      - USER=$USER
+      - PASS=$PASS
+      - USERID=1000
+      - GROUPID=1000
+      - SHARENAME=backups
+      - TMSIZE=1024000
+    volumes:
+      - ./backups:/backups:z

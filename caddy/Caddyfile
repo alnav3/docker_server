@@ -1,0 +1,128 @@
+{
+  admin off
+}
+
+# Caddy para searxng
+search.{$DOMAIN} {
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+  reverse_proxy searxng:8080
+}
+
+# Caddy para vaultwarden
+bitwarden.{$DOMAIN} {
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+  reverse_proxy vaultwarden:80
+}
+
+# Caddy para jellyfin
+jelly-pre.{$DOMAIN} jellyfin-pre.{$DOMAIN} {
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+  reverse_proxy jellyfin:8096
+}
+
+# Caddy para plex
+plex.{$DOMAIN} {
+  reverse_proxy 10.71.71.10:32400
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para ntfy
+ntfy.{$DOMAIN} {
+  reverse_proxy ntfy:80
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para sonarr
+shows.{$DOMAIN} {
+  reverse_proxy 10.71.71.10:8989
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para transmission
+torrent.{$DOMAIN} {
+  reverse_proxy transmission:9091
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para radarr
+movies.{$DOMAIN} {
+  reverse_proxy 10.71.71.10:7878
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para nextcloud
+cloud.{$DOMAIN} {
+  reverse_proxy new_nextcloud:80
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para calibre-web
+books.{$DOMAIN} {
+  reverse_proxy calibre-web:8083
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+# Caddy para headscale
+headscale.{$DOMAIN} alnav.duckdns.org {
+  redir 10.71.71.7:8081
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}
+
+
+(global) {
+	header {
+		# disable FLoC tracking
+		Permissions-Policy interest-cohort=()
+
+		# enable HSTS
+		Strict-Transport-Security max-age=31536000;
+
+		# keep referrer data off
+		Referrer-Policy no-referrer
+
+		# prevent for appearing in search engine for private instances (option)
+		#X-Robots-Tag noindex
+	}
+}
+
+piped.{$DOMAIN} {
+	reverse_proxy pipedfrontend:80
+	import global
+}
+
+pipedapi.{$DOMAIN} {
+	reverse_proxy nginx:80
+	import global
+}
+
+pipedproxy.{$DOMAIN} {
+	@ytproxy path /videoplayback* /api/v4/* /api/manifest/*
+	import global
+
+	route {
+		header @ytproxy {
+			Cache-Control private always
+		}
+
+		header / {
+			Cache-Control "public, max-age=604800"
+		}
+
+		reverse_proxy unix//var/run/ytproxy/actix.sock {
+			header_up -CF-Connecting-IP
+			header_up -X-Forwarded-For
+			header_down -etag
+			header_down -alt-svc
+		}
+	}
+}
+
+
+*.{$DOMAIN}  {
+  reverse_proxy https://teleport:3080 {
+    transport http {
+      tls_insecure_skip_verify
+    }
+  }
+  tls /etc/caddy/cloudflare.crt /etc/caddy/cloudflare.key
+}

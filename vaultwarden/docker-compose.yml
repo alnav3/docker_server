@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    volumes:
+      - ./vw-data/:/data/
+    restart: always
+networks:
+  default:
+    external:
+      name: web_network

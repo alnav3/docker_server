@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  caddy:
+    container_name: caddy
+    image: caddy:latest
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./data:/data
+      - ./config:/config
+      - ./cloudflare.key:/etc/caddy/cloudflare.key
+      - ./cloudflare.crt:/etc/caddy/cloudflare.crt
+      - piped-proxy:/var/run/ytproxy # This line assumes you want to link the piped-proxy volume
+    networks:
+      - web_network
+
+networks:
+  web_network:
+    external: true
+volumes:
+  piped-proxy: # Define this as an external volume if it's being shared with other containers
+    external: true
